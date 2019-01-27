@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2. 함수형으로 전환하기</title>
+  <script src="js/partial.js"></script>
+  <script src="js/_.js"></script>
+
+</head>
+<body>
+
+<script>
+var users = [
+  { id: 1, name: 'ID', age: 36 },
+  { id: 2, name: 'BJ', age: 32 },
+  { id: 3, name: 'JM', age: 32 },
+  { id: 4, name: 'PJ', age: 27 },
+  { id: 5, name: 'HA', age: 25 },
+  { id: 6, name: 'JE', age: 26 },
+  { id: 7, name: 'JI', age: 31 },
+  { id: 8, name: 'MP', age: 23 }
+];
+
+// 1. 명령형 코드
+    // 1. 30세 이상인 users를 거른다.
+var temp_users = [];
+for (var i=0; i<users.length;i++) {
+    if(users[i].age >= 30) {
+        temp_users.push(users[i]);
+    }
+}
+console.log(temp_users);
+
+    // 2. 30세 이상인 users의 names를 수집한다.
+var names = [];
+for(var i=0; i<temp_users.length; i++) {
+    names.push(temp_users[i].name);
+}
+console.log(names);
+
+    // 3. 30세 미만인 users를 거른다.
+var temp_users = [];
+for (var i=0; i<users.length;i++) {
+    if(users[i].age < 30) {
+        temp_users.push(users[i]);
+    }
+}
+console.log(temp_users);
+
+    // 4. 30세 미만인 users의 ages를 수집한다.
+var ages = [];
+for (var i = 0; i<users.length; i++) {
+    if(users[i].age < 30) {
+        ages.push(users[i].age);
+    }
+}
+console.log(ages);
+
+
+// 2. _filter, _map으로 리팩토링
+    // _filter
+    // 1과 3의 중복을 해결
+    // 응용형 함수(적용형 프로그래밍), 고차함수.
+    // 함수를 인자로 받아서 원하는 시점에 평가를 하면서
+    // 인자로 받은 함수가 아는 특정한 인자를 적용해가면서 로직을 완성해나가는 프로그래밍. 함수.
+// function _filter(list, predi) {
+//     var new_list = [];
+//     for (var i=0; i<list.length;i++) {
+//         if(predi(list[i])) { // 조건식에 함수인자 전달
+//             new_list.push(list[i]);
+//         }
+//     }
+//     // console.log(temp_users); 는 부수효과
+//     return new_list;
+// }
+
+console.log(_filter(users, function(user){ return user.age >= 30; }));
+
+console.log(_filter(users, function(user){ return user.age < 30; }));
+
+// console.log(
+//     _filter([1,2,3,4], function(num){ return num % 2; }),
+//     _filter([1,2,3,4], function(num){ return num % 3; })
+// )
+
+    // _map
+    // 데이터형이 어떻게 생겼는지 아무것도 보이지 않는다. 다형성이 높다.
+    // 재사용성이 극대화되게 된다.
+// function _map(list, mapper) {
+//     var new_list = [];
+//     for(var i=0; i<list.length; i++) {
+//         new_list.push(mapper(list[i]));
+//     }
+//     // console.log(new_list);
+//     return new_list;
+// }
+
+var over_30 = _filter(users, function(user){ return user.age >= 30; });
+console.log(over_30);
+
+var names = _map(over_30, function(user) {return user.name;});
+console.log(names);
+
+var under_30 = _filter(users, function(user){ return user.age < 30; });
+console.log(under_30);
+
+var ages = _map(under_30, function(user){ return user.age;});
+console.log(ages);
+
+console.log(
+    _map(_filter(users, function(user){ return user.age >= 30; }), 
+    function(user) {return user.name;})
+);
+
+console.log(
+    _map(_filter(users, function(user){ return user.age < 30; }), 
+    function(user) {return user.age;})
+);
+
+// 다형성
+    // 외부 다형성
+    // 1. array_like, arguments, document.querySelectorAll
+
+    // 이미 자바스크립트에는 map 과 filter 같은 함수가 있다.
+    // 그런데, 이미 있는 이런 함수들을 우리는 왜 만들었을까?
+    // 자바스크립트에 있는 map 과 filter 는 '메서드' 다.
+    // 그말인 즉, 순수함수가 아니며 객체지향 프로그래밍이다.
+    // 메서드의 특징은 해당 클래스에 정의되어 있기 때문에 해당 클래스의 인스턴스에서만 사용할 수 있다.
+    // 
+console.log(
+    [1,2,3,4].map(function(val){
+        return val * 2;
+    })
+);
+
+console.log(
+    [1,2,3,4].filter(function(val){
+        return val % 2;
+    })
+);
+// console.log( 
+//     document.querySelectorAll('*').map(function(node){
+//         return node.nodeName;
+//     })
+// );
+    // error. Array 가 아니므로.
+    // 해당하는 클래스에 준비되어 있지 않은 메서드가 아닌 이상 사용하기 어렵다. 다형성을 지원하는데 어려움이 있음.
+
+
+// array_like > 자바스크립트에는 배열같지만 배열이 아닌 배열같은 객체가 많다. 
+// ex. jQuery 
+// $('div')
+console.log(document.querySelectorAll('*')); // __proto__: NodeList, constructor() 가 NodeList. 배열이 아님.
+
+// array_like... length 가 있고 key-value 의 값들이 있고...
+
+// 위 코드를 함수형 프로그래밍으로 전환
+// 함수를 먼저 만들고 함수에 맞는 데이터를 적용해서 프로그래밍.
+// 이 작은 차이로 굉장히 높은 다형성을 만들... 유용하고 실용적인 형태가 됨.
+console.log( 
+    _map(document.querySelectorAll('*'), function(node){
+        return node.nodeName;
+    })
+);
+    // Array 가 아니더라도. 잘 작동함.
+
+// 객체지향은 평가의 순서가 굉장히 중요하다. 메서드에 해당하는 객체가 생겨야 기능을 수행할 수 있다.
+// 함수형 프로그래밍은 함수 자체가 먼저 존재하기 때문에, 평가시점이 상대적으로 상당히 유연해진다. 그것을 이용해서 더 높은 조합성을 만들 수 있음.
+
+
+    // 내부 다형성
+        // predi, iter, mapper > 내부 다형성은 보조 함수가 책임을 진다.
+
+_map([1,2,3,4], function(v){
+    return v + 10;
+});
+
+    // 데이터에 있어 자유롭고 다형성을 높이는데 있어 유리하다.
+
+
+</script>
